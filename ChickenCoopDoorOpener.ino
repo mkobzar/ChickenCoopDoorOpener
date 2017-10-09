@@ -8,9 +8,9 @@ ISR(WDT_vect) {
 //#define DEBUG
 
 // Motor 1 // D2, D3, D9 => works with nodemcu
-int in1_pin = PCINT19;
-int in2_pin = PCINT20;
-int enA_pin = PD7; // enA_pin needs to be a PWM
+int motor1a_pin = PCINT19;
+int motor1b_pin = PCINT20;
+int motor1speed_pin = PD7; // motor1speed_pin needs to be a PWM
 int senseClosed_pin = PD5;
 int senseOpened_pin = PD6;
 int light_pin = A0;
@@ -20,9 +20,9 @@ void setup() {
 #ifdef DEBUG
   Serial.begin(9600);
 #endif
-  pinMode(in1_pin, OUTPUT);
-  pinMode(in2_pin, OUTPUT);
-  pinMode(enA_pin, OUTPUT);
+  pinMode(motor1a_pin, OUTPUT);
+  pinMode(motor1b_pin, OUTPUT);
+  pinMode(motor1speed_pin, OUTPUT);
   pinMode(senseClosed_pin,  INPUT);
   pinMode(senseOpened_pin,  INPUT);
 }
@@ -59,6 +59,8 @@ void loop() {
 
 bool IsDark()
 {
+  // 100 is very dark. at 100 light value door can be closed
+  // 300 is dark, at 300 door can be opened
   int light = analogRead(light_pin);
   int threshold = 200 + -100 * doorState;
 #ifdef DEBUG
@@ -83,9 +85,9 @@ void DoorOpen()
 #ifdef DEBUG
   Serial.println("DoorOpen()");
 #endif
-  analogWrite(enA_pin, 1200);
-  digitalWrite(in1_pin, LOW);
-  digitalWrite(in2_pin, HIGH);
+  analogWrite(motor1speed_pin, 1200);
+  digitalWrite(motor1a_pin, LOW);
+  digitalWrite(motor1b_pin, HIGH);
   while (digitalRead(senseOpened_pin) != HIGH) {
     delay(20);
   }
@@ -98,9 +100,9 @@ void DoorClose()
 #ifdef DEBUG
   Serial.println("DoorClose()");
 #endif
-  analogWrite(enA_pin, 1200);
-  digitalWrite(in2_pin, LOW);
-  digitalWrite(in1_pin, HIGH);
+  analogWrite(motor1speed_pin, 1200);
+  digitalWrite(motor1b_pin, LOW);
+  digitalWrite(motor1a_pin, HIGH);
   while (digitalRead(senseClosed_pin) != HIGH) {
     delay(20);
   }
@@ -113,8 +115,8 @@ void DoorStop()
 #ifdef DEBUG
   Serial.println("DoorStop()");
 #endif
-  analogWrite(enA_pin, 0);
-  digitalWrite(in1_pin, LOW);
-  digitalWrite(in2_pin, LOW);
+  analogWrite(motor1speed_pin, 0);
+  digitalWrite(motor1a_pin, LOW);
+  digitalWrite(motor1b_pin, LOW);
 }
 

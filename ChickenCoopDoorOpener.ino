@@ -5,20 +5,22 @@
 ISR(WDT_vect) {
   Sleepy::watchdogEvent();  // Setup the watchdog
 }
-//#define DEBUG
+#define DEBUG
 
 // Motor 1 // D2, D3, D9 => works with nodemcu
-int motor1a_pin = PCINT19;
-int motor1b_pin = PCINT20;
-int motor1speed_pin = PD7; // motor1speed_pin needs to be a PWM
-int senseClosed_pin = PD5;
-int senseOpened_pin = PD6;
-int light_pin = A0;
+int motor1a_pin = 3;//PCINT19;
+int motor1b_pin = 4;//PCINT20;
+int motor1speed_pin = 7;//PD7; // motor1speed_pin needs to be a PWM
+int senseClosed_pin = 5;//PD5;
+int senseOpened_pin = 6;//PD6;
+int light_pin = 14;//A0;
 int doorState = 0; // -1 is closed, 0 is unknown, 1 is opened
 
 void setup() {
 #ifdef DEBUG
+	delay(3000);
   Serial.begin(9600);
+  Serial.println(" Serial.begin");
 #endif
   pinMode(motor1a_pin, OUTPUT);
   pinMode(motor1b_pin, OUTPUT);
@@ -52,7 +54,7 @@ void loop() {
 #ifdef DEBUG
     Serial.println("deep sleep");
 #endif
-    Sleepy::loseSomeTime(120000);
+    Sleepy::loseSomeTime(3000);
   }
 }
 

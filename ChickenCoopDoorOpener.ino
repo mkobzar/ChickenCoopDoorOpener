@@ -87,6 +87,8 @@ bool IsDark()
  
 void DoorMove(bool open)
 {
+	reset_millis();
+	unsigned long timeStart = millis() + 15000;
 	int sencePin = open ? senseOpened_pin : senseClosed_pin;
 #ifdef DEBUG
 	Serial.println("DoorMove()");
@@ -94,7 +96,6 @@ void DoorMove(bool open)
 	analogWrite(motor1speed_pin, 1200);
 	digitalWrite(motor1a_pin, !open);
 	digitalWrite(motor1b_pin, open);
-	unsigned long timeStart = millis() + 15000;
 	while (digitalRead(sencePin) == LOW && millis() < timeStart) {
 		delay(20);
 	}
@@ -102,7 +103,6 @@ void DoorMove(bool open)
 	doorState = open ? 1 : -1;
 }
  
-
 void DoorStop()
 {
 #ifdef DEBUG
@@ -113,3 +113,12 @@ void DoorStop()
 	digitalWrite(motor1b_pin, LOW);
 }
 
+
+void reset_millis()
+{
+	// http://forum.arduino.cc/index.php?topic=189138.0
+	extern volatile unsigned long timer0_millis, timer0_overflow_count;
+	noInterrupts();
+	timer0_millis = timer0_overflow_count = 0;
+	interrupts();
+}

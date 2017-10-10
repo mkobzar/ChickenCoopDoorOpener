@@ -1,124 +1,115 @@
-// For L298N Dual H-Bridge Motor Controller
-// pro mini is board in use
+// for pro mini is board with L298N Dual H-Bridge Motor Controller
 
-#include <JeeLib.h> // Low power functions library
-ISR(WDT_vect) {
-  Sleepy::watchdogEvent();  // Setup the watchdog
-}
 #define DEBUG
 
-// Motor 1 // D2, D3, D9 => works with nodemcu
-int motor1a_pin = 3;//PCINT19;
-int motor1b_pin = 4;//PCINT20;
-int motor1speed_pin = 7;//PD7; // motor1speed_pin needs to be a PWM
-int senseClosed_pin = 5;//PD5;
-int senseOpened_pin = 6;//PD6;
-int light_pin = 14;//A0;
+#include <JeeLib.h>  
+ISR(WDT_vect) {
+	Sleepy::watchdogEvent();
+}
+
+
+
+int motor1a_pin = 3; 
+int motor1b_pin = 4; 
+int motor1speed_pin = 7;  // motor1speed_pin needs to be a PWM
+int senseClosed_pin = 5; 
+int senseOpened_pin = 6; 
+int light_pin = 14; //A0
 int doorState = 0; // -1 is closed, 0 is unknown, 1 is opened
 
+ 
 void setup() {
 #ifdef DEBUG
 	delay(3000);
-  Serial.begin(9600);
-  Serial.println(" Serial.begin");
+	Serial.begin(9600);
+	Serial.println("Serial.begin");
 #endif
-  pinMode(motor1a_pin, OUTPUT);
-  pinMode(motor1b_pin, OUTPUT);
-  pinMode(motor1speed_pin, OUTPUT);
-  pinMode(senseClosed_pin,  INPUT);
-  pinMode(senseOpened_pin,  INPUT);
+	pinMode(motor1a_pin, OUTPUT);
+	pinMode(motor1b_pin, OUTPUT);
+	pinMode(motor1speed_pin, OUTPUT);
+	pinMode(senseClosed_pin, INPUT);
+	pinMode(senseOpened_pin, INPUT);
 }
 
-
 void loop() {
-  bool isDark = IsDark();
+	bool isDark = IsDark();
 #ifdef DEBUG
-  Serial.println("loop begin");
-  Serial.print("doorState=");
-  Serial.print(doorState);
-  Serial.print(", isDark=");
-  Serial.println(isDark);
+	Serial.println("loop begin");
+	Serial.print("doorState=");
+	Serial.print(doorState);
+	Serial.print(", isDark=");
+	Serial.println(isDark);
 #endif
-  if (isDark && doorState != -1) {
-    DoorClose();
+	if (isDark && doorState != -1) {
+		DoorMove(false);
 #ifdef DEBUG
-    Serial.println("closed");
+		Serial.println("closed");
 #endif
-  }
-  else if (!isDark && doorState != 1) {
-    DoorOpen();
+	}
+	else if (!isDark && doorState != 1) {
+		DoorMove(true);
 #ifdef DEBUG
-    Serial.println("opened");
+		Serial.println("opened");
 #endif
-  } else {
+	}
+	else {
 #ifdef DEBUG
-    Serial.println("deep sleep");
+		Serial.println("deep sleep");
 #endif
-    Sleepy::loseSomeTime(3000);
-  }
+		Sleepy::loseSomeTime(3000);
+	}
 }
 
 
 bool IsDark()
 {
-  // 100 is very dark. at 100 light value door can be closed
-  // 300 is dark, at 300 door can be opened
-  int light = analogRead(light_pin);
-  int threshold = 200 + -100 * doorState;
+	// 100 is very dark. at 100 light value door can be closed
+	// 300 is dark, at 300 door can be opened
+	int light = analogRead(light_pin);
+	int threshold = 200 + -100 * doorState;
 #ifdef DEBUG
-  Serial.print(light);
+	Serial.print(light);
 #endif
-  if (light < threshold ) {
+	if (light < threshold) {
 #ifdef DEBUG
-    Serial.println(" = night");
+		Serial.println(" = night");
 #endif
-    return true;
-  }
-  else {
+		return true;
+	}
+	else {
 #ifdef DEBUG
-    Serial.println(" = day");
+		Serial.println(" = day");
 #endif
-    return false;
-  }
+		return false;
+	}
 }
 
-void DoorOpen()
+ 
+void DoorMove(bool open)
 {
+	int sencePin = open ? senseOpened_pin : senseClosed_pin;
 #ifdef DEBUG
-  Serial.println("DoorOpen()");
+	Serial.println("DoorMove()");
 #endif
-  analogWrite(motor1speed_pin, 1200);
-  digitalWrite(motor1a_pin, LOW);
-  digitalWrite(motor1b_pin, HIGH);
-  while (digitalRead(senseOpened_pin) != HIGH) {
-    delay(20);
-  }
-  DoorStop();
-  doorState = 1;
+	analogWrite(motor1speed_pin, 1200);
+	digitalWrite(motor1a_pin, !open);
+	digitalWrite(motor1b_pin, open);
+	unsigned long timeStart = millis() + 15000;
+	while (digitalRead(sencePin) == LOW && millis() < timeStart) {
+		delay(20);
+	}
+	DoorStop();
+	doorState = open ? 1 : -1;
 }
-
-void DoorClose()
-{
-#ifdef DEBUG
-  Serial.println("DoorClose()");
-#endif
-  analogWrite(motor1speed_pin, 1200);
-  digitalWrite(motor1b_pin, LOW);
-  digitalWrite(motor1a_pin, HIGH);
-  while (digitalRead(senseClosed_pin) != HIGH) {
-    delay(20);
-  }
-  DoorStop();
-  doorState = -1;
-}
+ 
 
 void DoorStop()
 {
 #ifdef DEBUG
-  Serial.println("DoorStop()");
+	Serial.println("DoorStop()");
 #endif
-  analogWrite(motor1speed_pin, 0);
-  digitalWrite(motor1a_pin, LOW);
-  digitalWrite(motor1b_pin, LOW);
+	analogWrite(motor1speed_pin, 0);
+	digitalWrite(motor1a_pin, LOW);
+	digitalWrite(motor1b_pin, LOW);
 }
 

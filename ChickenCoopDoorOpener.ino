@@ -1,6 +1,6 @@
 // for pro mini is board with L298N Dual H-Bridge Motor Controller
 
-#define DEBUG
+// #define DEBUG
 
 #include <JeeLib.h>  
 ISR(WDT_vect) {
@@ -52,19 +52,17 @@ void loop() {
 		Serial.println("opened");
 #endif
 	}
-	else {
 #ifdef DEBUG
 		Serial.println("deep sleep");
 #endif
-		Sleepy::loseSomeTime(3000);
-	}
+	Sleepy::loseSomeTime(120000); // next check is 2 minutes later
 }
 
 
 bool IsDark()
 {
-	// 100 is very dark. at 100 light value door can be closed
-	// 300 is dark, at 300 door can be opened
+	// light < 100: door should be closed
+	// light > 300: door should be opened
 	int light = analogRead(light_pin);
 	int threshold = 200 + -100 * doorState;
 #ifdef DEBUG
@@ -88,7 +86,6 @@ bool IsDark()
 void DoorMove(bool open)
 {
 	reset_millis();
-	unsigned long timeStart = millis() + 15000;
 	int sencePin = open ? senseOpened_pin : senseClosed_pin;
 #ifdef DEBUG
 	Serial.println("DoorMove()");
@@ -96,7 +93,7 @@ void DoorMove(bool open)
 	analogWrite(motor1speed_pin, 1200);
 	digitalWrite(motor1a_pin, !open);
 	digitalWrite(motor1b_pin, open);
-	while (digitalRead(sencePin) == LOW && millis() < timeStart) {
+	while (digitalRead(sencePin) == LOW && millis() < 30000) {
 		delay(20);
 	}
 	DoorStop();
@@ -116,7 +113,6 @@ void DoorStop()
 
 void reset_millis()
 {
-	// http://forum.arduino.cc/index.php?topic=189138.0
 	extern volatile unsigned long timer0_millis, timer0_overflow_count;
 	noInterrupts();
 	timer0_millis = timer0_overflow_count = 0;

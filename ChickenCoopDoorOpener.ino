@@ -16,7 +16,7 @@ int senseClosed_pin = 5;
 int senseOpened_pin = 6; 
 int light_pin = 14; //A0
 int doorState = 0; // -1 is closed, 0 is unknown, 1 is opened
-
+int relay = 13;
  
 void setup() {
 #ifdef DEBUG
@@ -29,6 +29,7 @@ void setup() {
 	pinMode(motor1speed_pin, OUTPUT);
 	pinMode(senseClosed_pin, INPUT);
 	pinMode(senseOpened_pin, INPUT);
+  pinMode(relay, OUTPUT);  
 }
 
 void loop() {
@@ -85,6 +86,7 @@ bool IsDark()
  
 void DoorMove(bool open)
 {
+  digitalWrite(relay,1);  
 	reset_millis();
 	int sencePin = open ? senseOpened_pin : senseClosed_pin;
 #ifdef DEBUG
@@ -108,6 +110,7 @@ void DoorStop()
 	analogWrite(motor1speed_pin, 0);
 	digitalWrite(motor1a_pin, LOW);
 	digitalWrite(motor1b_pin, LOW);
+  digitalWrite(relay,0);  
 }
 
 

@@ -42,13 +42,13 @@ void loop() {
 	Serial.println(isDark);
 #endif
 	if (isDark && doorState != -1) {
-		DoorMove(false);
+		door(false); // close
 #ifdef DEBUG
 		Serial.println("closed");
 #endif
 	}
 	else if (!isDark && doorState != 1) {
-		DoorMove(true);
+		door(true); // open
 #ifdef DEBUG
 		Serial.println("opened");
 #endif
@@ -84,10 +84,17 @@ bool IsDark()
 }
 
  
-void DoorMove(bool open)
+void door(bool open)
 {
+  // give power to motor driver
   digitalWrite(relay,1);  
-	reset_millis();
+  
+	//reset_millis
+  extern volatile unsigned long timer0_millis, timer0_overflow_count;
+  noInterrupts();
+  timer0_millis = timer0_overflow_count = 0;
+  interrupts();
+  
 	int sencePin = open ? senseOpened_pin : senseClosed_pin;
 #ifdef DEBUG
 	Serial.println("DoorMove()");
@@ -98,26 +105,15 @@ void DoorMove(bool open)
 	while (digitalRead(sencePin) == LOW && millis() < 30000) {
 		delay(20);
 	}
-	DoorStop();
+	//DoorStop
+  #ifdef DEBUG
+  Serial.println("DoorStop()");
+#endif
+  analogWrite(motor1speed_pin, 0);
+  digitalWrite(motor1a_pin, LOW);
+  digitalWrite(motor1b_pin, LOW);
+  digitalWrite(relay,0);  
 	doorState = open ? 1 : -1;
 }
- 
-void DoorStop()
-{
-#ifdef DEBUG
-	Serial.println("DoorStop()");
-#endif
-	analogWrite(motor1speed_pin, 0);
-	digitalWrite(motor1a_pin, LOW);
-	digitalWrite(motor1b_pin, LOW);
-  digitalWrite(relay,0);  
-}
 
 
-void reset_millis()
-{
-	extern volatile unsigned long timer0_millis, timer0_overflow_count;
-	noInterrupts();
-	timer0_millis = timer0_overflow_count = 0;
-	interrupts();
-}

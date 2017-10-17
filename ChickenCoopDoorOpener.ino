@@ -1,4 +1,29 @@
 // for pro mini is board with L298N Dual H-Bridge Motor Controller
+/*
+Silicon Labs CP210x USB to UART Bridge pinout <-|-> Pro Mini RobotDyn 328 3.3v
+DRT - DTR
+RXD - TXO
+TXD - RXI
++5V - RAW
+GND - GRN (next to RAW)
+
+Silicon Labs CP210x USB to UART Bridge pinout <-|-> Pro Mini RobotDyn 328 3.3v (pinouts\promini328p5_top.jpg)
+DRT - GRD (above TX)
+RXD - TX
+TXD - RX
++5V - RAW (or VCC)
+GND - GRN (next to RAW or next to VCC)
+
+
+Silicon Labs CP210x USB to UART Bridge pinout <-|-> Pro Mini RobotDyn 328 3.3v (pinouts\promini3.png)   ??
+DRT - DTR
+RXD - TXO
+TXD - RXI
++5V - RAW
+GND - GRN (next to RAW)
+
+
+*/
 
 // #define DEBUG
 

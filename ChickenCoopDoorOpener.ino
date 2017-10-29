@@ -15,14 +15,12 @@ TXD - RX
 GND - GRN (next to RAW or next to VCC)
 
 
-Silicon Labs CP210x USB to UART Bridge pinout <-|-> Pro Mini RobotDyn 328 3.3v (pinouts\promini3.png)   ??
+Silicon Labs CP210x USB to UART Bridge pinout <-|-> Pro Mini RobotDyn 328 5v (checkenCoop) (pinouts\promini2.png)
 DRT - DTR
 RXD - TXO
 TXD - RXI
-+5V - RAW
-GND - GRN (next to RAW)
-
-
++5V - VCC
+GND - GRN
 */
 
 // #define DEBUG
@@ -33,16 +31,15 @@ ISR(WDT_vect) {
 }
 
 
-
-int motor1a_pin = 3; 
-int motor1b_pin = 4; 
+int motor1a_pin = 3;
+int motor1b_pin = 4;
 int motor1speed_pin = 7;  // motor1speed_pin needs to be a PWM
-int senseClosed_pin = 5; 
-int senseOpened_pin = 6; 
+int senseClosed_pin = 5;
+int senseOpened_pin = 6;
 int light_pin = 14; //A0
 int doorState = 0; // -1 is closed, 0 is unknown, 1 is opened
 int relay = 13;
- 
+
 void setup() {
 #ifdef DEBUG
 	delay(3000);
@@ -54,7 +51,7 @@ void setup() {
 	pinMode(motor1speed_pin, OUTPUT);
 	pinMode(senseClosed_pin, INPUT);
 	pinMode(senseOpened_pin, INPUT);
-  pinMode(relay, OUTPUT);  
+	pinMode(relay, OUTPUT);
 }
 
 void loop() {
@@ -79,7 +76,7 @@ void loop() {
 #endif
 	}
 #ifdef DEBUG
-		Serial.println("deep sleep");
+	Serial.println("deep sleep");
 #endif
 	Sleepy::loseSomeTime(120000); // next check is 2 minutes later
 }
@@ -87,10 +84,10 @@ void loop() {
 
 bool IsDark()
 {
-	// light < 100: door should be closed
-	// light > 300: door should be opened
+	// light < 80: door should be closed
+	// light > 180: door should be opened
 	int light = analogRead(light_pin);
-	int threshold = 200 + -100 * doorState;
+	int threshold = 130 + -50 * doorState;
 #ifdef DEBUG
 	Serial.print(light);
 #endif
@@ -108,18 +105,18 @@ bool IsDark()
 	}
 }
 
- 
+
 void door(bool open)
 {
-  // give power to motor driver
-  digitalWrite(relay,1);  
-  
+	// give power to motor driver
+	digitalWrite(relay, 1);
+
 	//reset_millis
-  extern volatile unsigned long timer0_millis, timer0_overflow_count;
-  noInterrupts();
-  timer0_millis = timer0_overflow_count = 0;
-  interrupts();
-  
+	extern volatile unsigned long timer0_millis, timer0_overflow_count;
+	noInterrupts();
+	timer0_millis = timer0_overflow_count = 0;
+	interrupts();
+
 	int sencePin = open ? senseOpened_pin : senseClosed_pin;
 #ifdef DEBUG
 	Serial.println("DoorMove()");
@@ -130,15 +127,19 @@ void door(bool open)
 	while (digitalRead(sencePin) == LOW && millis() < 30000) {
 		delay(20);
 	}
+
+	// let move door closing another 1 sec after door sensot alreary reported "door already closed"
+	if (!open) {
+		delay(1000);
+	}
+
 	//DoorStop
-  #ifdef DEBUG
-  Serial.println("DoorStop()");
+#ifdef DEBUG
+	Serial.println("DoorStop()");
 #endif
-  analogWrite(motor1speed_pin, 0);
-  digitalWrite(motor1a_pin, LOW);
-  digitalWrite(motor1b_pin, LOW);
-  digitalWrite(relay,0);  
+	analogWrite(motor1speed_pin, 0);
+	digitalWrite(motor1a_pin, LOW);
+	digitalWrite(motor1b_pin, LOW);
+	digitalWrite(relay, 0);
 	doorState = open ? 1 : -1;
 }
-
-

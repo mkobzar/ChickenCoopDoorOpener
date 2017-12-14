@@ -1,27 +1,17 @@
-// for pro mini is board with L298N Dual H-Bridge Motor Controller
 /*
-Silicon Labs CP210x USB to UART Bridge pinout <-|-> Pro Mini RobotDyn 328 3.3v
+used:
+	L298N Dual H-Bridge Motor Controller to open/close the door 
+	relay (to save battery power) connecter to pin 1
+	Pro Mini 328 3.3v 8MHz
+
+Silicon Labs CP210x USB to UART Bridge pinout <-|-> Pro Mini RobotDyn 328 3.3v 8MHz
 DRT - DTR
 RXD - TXO
 TXD - RXI
-+5V - RAW
-GND - GRN (next to RAW)
-
-Silicon Labs CP210x USB to UART Bridge pinout <-|-> Pro Mini RobotDyn 328 3.3v (pinouts\promini328p5_top.jpg)
-DRT - GRD (above TX)
-RXD - TX
-TXD - RX
-+5V - RAW (or VCC)
-GND - GRN (next to RAW or next to VCC)
-
-
-Silicon Labs CP210x USB to UART Bridge pinout <-|-> Pro Mini RobotDyn 328 5v (checkenCoop) (pinouts\promini2.png)
-DRT - DTR
-RXD - TXO
-TXD - RXI
-+5V - VCC
++3.3V - VCC
 GND - GRN
 */
+
 
 // #define DEBUG
 
@@ -84,10 +74,10 @@ void loop() {
 
 bool IsDark()
 {
-	// light < 80: door should be closed
-	// light > 180: door should be opened
+	// light < 100: door should be closed
+	// light > 200: door should be opened
 	int light = analogRead(light_pin);
-	int threshold = 130 + -50 * doorState;
+	int threshold = 150 + -50 * doorState;
 #ifdef DEBUG
 	Serial.print(light);
 #endif
@@ -108,6 +98,10 @@ bool IsDark()
 
 void door(bool open)
 {
+	if (!open) {
+		// when door should be closed - delay for 30 minutes
+		Sleepy::loseSomeTime(1800000); // 30 * 60 * 1000 
+	}
 	// give power to motor driver
 	digitalWrite(relay, 1);
 

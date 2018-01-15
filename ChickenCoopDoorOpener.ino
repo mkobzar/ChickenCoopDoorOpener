@@ -77,7 +77,7 @@ bool IsDark()
 	// light < 100: door should be closed
 	// light > 200: door should be opened
 	int light = analogRead(light_pin);
-	int threshold = 150 + -50 * doorState;
+	int threshold = 100 + -20 * doorState;
 #ifdef DEBUG
 	Serial.print(light);
 #endif

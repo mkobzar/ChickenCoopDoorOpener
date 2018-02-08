@@ -1,8 +1,8 @@
 /*
 used:
-	L298N Dual H-Bridge Motor Controller to open/close the door 
-	relay (to save battery power) connecter to pin 1
-	Pro Mini 328 3.3v 8MHz
+L298N Dual H-Bridge Motor Controller to open/close the door
+relay (to save battery power) connecter to pin 1
+Pro Mini 328 3.3v 8MHz
 
 Silicon Labs CP210x USB to UART Bridge pinout <-|-> Pro Mini RobotDyn 328 3.3v 8MHz
 DRT - DTR
@@ -77,7 +77,7 @@ bool IsDark()
 	// light < 100: door should be closed
 	// light > 200: door should be opened
 	int light = analogRead(light_pin);
-	int threshold = 100 + -20 * doorState;
+	int threshold = 100 + -40 * doorState;
 #ifdef DEBUG
 	Serial.print(light);
 #endif
@@ -98,9 +98,11 @@ bool IsDark()
 
 void door(bool open)
 {
+	int maxDoorMove = 20000;
 	if (!open) {
 		// when door should be closed - delay for 30 minutes
 		Sleepy::loseSomeTime(1800000); // 30 * 60 * 1000 
+									   // maxDoorMove = 20000;
 	}
 	// give power to motor driver
 	digitalWrite(relay, 1);
@@ -118,13 +120,14 @@ void door(bool open)
 	analogWrite(motor1speed_pin, 1200);
 	digitalWrite(motor1a_pin, !open);
 	digitalWrite(motor1b_pin, open);
-	while (digitalRead(sencePin) == LOW && millis() < 30000) {
+
+	while (digitalRead(sencePin) == LOW && millis() < maxDoorMove) {
 		delay(20);
 	}
 
 	// let move door closing another 1 sec after door sensot alreary reported "door already closed"
 	if (!open) {
-		delay(1000);
+		delay(2000);
 	}
 
 	//DoorStop

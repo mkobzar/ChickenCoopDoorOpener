@@ -1,5 +1,5 @@
 /*
-used:
+in use
 L298N Dual H-Bridge Motor Controller to open/close the door
 relay (to save battery power) connecter to pin 1
 Pro Mini 328 3.3v 8MHz
@@ -29,6 +29,7 @@ int senseOpened_pin = 6;
 int light_pin = 14; //A0
 int doorState = 0; // -1 is closed, 0 is unknown, 1 is opened
 int relay = 13;
+int maxDoorMove = 30000;
 
 void setup() {
 #ifdef DEBUG
@@ -98,12 +99,11 @@ bool IsDark()
 
 void door(bool open)
 {
-	int maxDoorMove = 20000;
 	if (!open) {
 		// when door should be closed - delay for 30 minutes
 		Sleepy::loseSomeTime(1800000); // 30 * 60 * 1000 
-									   // maxDoorMove = 20000;
 	}
+
 	// give power to motor driver
 	digitalWrite(relay, 1);
 
